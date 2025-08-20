@@ -1,0 +1,619 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Family Recipe Catalog</title>
+    <!-- Inter Font -->
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap">
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #f3f4f6;
+        }
+        /* Custom styles for comment section */
+        .comment-container {
+            max-height: 150px;
+            overflow-y: auto;
+        }
+        .liked {
+            color: #ef4444; /* red-500 */
+        }
+        .hated {
+            color: #3b82f6; /* blue-500 */
+        }
+    </style>
+</head>
+<body class="p-4 sm:p-8 md:p-12 text-gray-800">
+    <!-- Main Application Container -->
+    <div class="max-w-6xl mx-auto bg-white p-6 sm:p-8 rounded-2xl shadow-xl">
+        <header class="text-center mb-8">
+            <h1 class="text-3xl sm:text-4xl font-bold text-gray-900">Family Recipe Catalog</h1>
+            <p class="mt-2 text-md text-gray-600">
+                Upload photos of your old family recipes to catalog them digitally.
+            </p>
+            <div id="user-id-display" class="mt-4 text-sm text-gray-500 font-mono hidden"></div>
+        </header>
+
+        <!-- Upload Recipe Section -->
+        <section class="border-b border-gray-200 pb-8 mb-8">
+            <h2 class="text-2xl font-semibold text-center mb-4 text-gray-800">Add a New Recipe</h2>
+            <div class="flex flex-col items-center justify-center space-y-4">
+                <input type="file" id="recipeImageInput" accept="image/*" class="w-full sm:w-1/2 md:w-1/3 px-4 py-2 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent cursor-pointer">
+                <button id="uploadButton" class="w-full sm:w-auto px-6 py-3 bg-blue-600 text-white font-semibold rounded-lg shadow-lg hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition duration-200 ease-in-out disabled:opacity-50 disabled:cursor-not-allowed">
+                    <span id="buttonText">Upload & Process Recipe</span>
+                </button>
+                <div id="loadingIndicator" class="hidden text-center text-gray-500">
+                    <svg class="animate-spin h-6 w-6 text-blue-600 mx-auto" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                        <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                        <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                    </svg>
+                    <p class="mt-2 text-sm">Processing image and saving recipes...</p>
+                </div>
+            </div>
+        </section>
+
+        <!-- Top Recipes Section -->
+        <section class="mb-8 border-b border-gray-200 pb-8">
+            <h2 class="text-2xl font-semibold text-center mb-4 text-gray-800">Top 5 Recipes</h2>
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                <!-- Most Loved -->
+                <div class="bg-blue-50 p-4 rounded-lg shadow-inner">
+                    <h3 class="text-xl font-bold text-center text-blue-700 mb-2">Most Loved ❤️</h3>
+                    <ul id="mostLovedList" class="space-y-2"></ul>
+                </div>
+                <!-- Most Hated -->
+                <div class="bg-red-50 p-4 rounded-lg shadow-inner">
+                    <h3 class="text-xl font-bold text-center text-red-700 mb-2">Most Hated 💔</h3>
+                    <ul id="mostHatedList" class="space-y-2"></ul>
+                </div>
+                <!-- Most Viewed -->
+                <div class="bg-green-50 p-4 rounded-lg shadow-inner">
+                    <h3 class="text-xl font-bold text-center text-green-700 mb-2">Most Viewed 👀</h3>
+                    <ul id="mostViewedList" class="space-y-2"></ul>
+                </div>
+            </div>
+        </section>
+
+        <!-- Search and Filter Section -->
+        <section class="mb-8">
+            <h2 class="text-2xl font-semibold text-center mb-4 text-gray-800">Find Your Recipes</h2>
+            <div class="flex flex-col sm:flex-row items-center space-y-4 sm:space-y-0 sm:space-x-4">
+                <input type="text" id="searchInput" placeholder="Search by recipe name..." class="w-full px-4 py-2 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+                <select id="categoryFilter" class="w-full sm:w-auto px-4 py-2 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white">
+                    <option value="all">All Categories</option>
+                    <option value="Dessert">Dessert</option>
+                    <option value="Main Course">Main Course</option>
+                    <option value="Appetizer">Appetizer</option>
+                    <option value="Side Dish">Side Dish</option>
+                    <option value="Breakfast">Breakfast</option>
+                    <option value="Beverage">Beverage</option>
+                    <option value="Soup">Soup</option>
+                    <option value="Other">Other</option>
+                </select>
+            </div>
+        </section>
+
+        <!-- Recipes Display Section -->
+        <section>
+            <div id="recipesList" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                <!-- Recipe cards will be injected here by JavaScript -->
+                <div id="noRecipesMessage" class="hidden col-span-full text-center text-gray-500 p-8">
+                    No recipes found. Please add a new one!
+                </div>
+            </div>
+        </section>
+
+        <!-- Custom Message Modal -->
+        <div id="messageModal" class="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full hidden" role="dialog" aria-modal="true" aria-labelledby="modal-title">
+            <div class="relative top-20 mx-auto p-5 border w-96 shadow-lg rounded-2xl bg-white transform -translate-y-1/2 transition-transform duration-300 ease-in-out scale-95 opacity-0" id="modalContent">
+                <div class="mt-3 text-center">
+                    <h3 class="text-lg leading-6 font-medium text-gray-900" id="modal-title"></h3>
+                    <div class="mt-2 px-7 py-3">
+                        <p class="text-sm text-gray-500" id="modal-message"></p>
+                    </div>
+                    <div class="items-center px-4 py-3">
+                        <button id="modal-close-button" class="px-4 py-2 bg-blue-600 text-white text-base font-medium rounded-lg shadow-sm hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 w-full">
+                            OK
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Firebase and Application Logic -->
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
+        import { getAuth, signInAnonymously, signInWithCustomToken, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+        import { getFirestore, collection, addDoc, onSnapshot, query, orderBy, doc, getDoc, updateDoc } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+
+        // Global variables provided by the Canvas environment
+        const appId = typeof __app_id !== 'undefined' ? __app_id : 'default-app-id';
+        const firebaseConfig = JSON.parse(typeof __firebase_config !== 'undefined' ? __firebase_config : '{}');
+        const initialAuthToken = typeof __initial_auth_token !== 'undefined' ? __initial_auth_token : null;
+
+        // Firebase Service Variables
+        let db;
+        let auth;
+        let userId = null;
+        let isAuthReady = false;
+
+        // UI Element References
+        const recipeImageInput = document.getElementById('recipeImageInput');
+        const uploadButton = document.getElementById('uploadButton');
+        const buttonText = document.getElementById('buttonText');
+        const loadingIndicator = document.getElementById('loadingIndicator');
+        const recipesList = document.getElementById('recipesList');
+        const noRecipesMessage = document.getElementById('noRecipesMessage');
+        const searchInput = document.getElementById('searchInput');
+        const categoryFilter = document.getElementById('categoryFilter');
+        const userIdDisplay = document.getElementById('user-id-display');
+        const mostLovedList = document.getElementById('mostLovedList');
+        const mostHatedList = document.getElementById('mostHatedList');
+        const mostViewedList = document.getElementById('mostViewedList');
+
+        // Modal Elements
+        const messageModal = document.getElementById('messageModal');
+        const modalContent = document.getElementById('modalContent');
+        const modalTitle = document.getElementById('modal-title');
+        const modalMessage = document.getElementById('modal-message');
+        const modalCloseButton = document.getElementById('modal-close-button');
+
+        // Array to store all recipes for filtering
+        let allRecipes = [];
+
+        // Helper function to show the custom message modal
+        function showMessageModal(title, message) {
+            modalTitle.textContent = title;
+            modalMessage.textContent = message;
+            messageModal.classList.remove('hidden');
+            setTimeout(() => {
+                modalContent.classList.remove('scale-95', 'opacity-0');
+                modalContent.classList.add('scale-100', 'opacity-100');
+            }, 10);
+        }
+
+        // Helper function to hide the custom message modal
+        function hideMessageModal() {
+            modalContent.classList.remove('scale-100', 'opacity-100');
+            modalContent.classList.add('scale-95', 'opacity-0');
+            setTimeout(() => {
+                messageModal.classList.add('hidden');
+            }, 300);
+        }
+        
+        // Hide the modal when the close button is clicked
+        modalCloseButton.addEventListener('click', hideMessageModal);
+
+        // Function to show and hide the loading state
+        function setLoading(isLoading) {
+            if (isLoading) {
+                uploadButton.disabled = true;
+                buttonText.textContent = "Processing...";
+                loadingIndicator.classList.remove('hidden');
+            } else {
+                uploadButton.disabled = false;
+                buttonText.textContent = "Upload & Process Recipe";
+                loadingIndicator.classList.add('hidden');
+            }
+        }
+
+        // Function to save a new recipe to Firestore
+        async function saveRecipeToFirestore(recipeData) {
+            try {
+                // IMPORTANT: We use a public collection path for shared data
+                const recipeCollection = collection(db, `artifacts/${appId}/public/data/recipes`);
+                await addDoc(recipeCollection, {
+                    ...recipeData,
+                    timestamp: new Date(),
+                    views: 0,
+                    loved: 0,
+                    hated: 0,
+                    comments: []
+                });
+            } catch (error) {
+                console.error("Error saving recipe to Firestore:", error);
+                throw new Error("Failed to save one of the recipes. Please try again.");
+            }
+        }
+
+        // Function to call the Gemini API with structured output
+        async function callGeminiStructuredAPI(text) {
+            // Updated prompt to handle multiple recipes and return an array
+            const prompt = `Convert the following recipe text into a structured JSON array. Each object in the array should represent a single recipe and have 'recipeName', 'category', 'ingredients' as an array of strings, and 'instructions'. Assign a category from the following list: [Dessert, Main Course, Appetizer, Side Dish, Breakfast, Beverage, Soup, Other]. If you can't determine a category, use "Other". The text is:\n\n${text}`;
+            let chatHistory = [{ role: "user", parts: [{ text: prompt }] }];
+            const payload = {
+                contents: chatHistory,
+                generationConfig: {
+                    responseMimeType: "application/json",
+                    responseSchema: {
+                        type: "ARRAY",
+                        items: {
+                            type: "OBJECT",
+                            properties: {
+                                "recipeName": { "type": "STRING" },
+                                "category": { "type": "STRING" },
+                                "ingredients": { "type": "ARRAY", "items": { "type": "STRING" } },
+                                "instructions": { "type": "STRING" }
+                            },
+                            "propertyOrdering": ["recipeName", "category", "ingredients", "instructions"]
+                        }
+                    }
+                }
+            };
+            const apiKey = "";
+            const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-05-20:generateContent?key=${apiKey}`;
+
+            try {
+                const response = await fetch(apiUrl, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(payload)
+                });
+
+                if (!response.ok) {
+                    const errorData = await response.json();
+                    throw new Error(`API error: ${errorData.error.message}`);
+                }
+                const result = await response.json();
+
+                const jsonString = result?.candidates?.[0]?.content?.parts?.[0]?.text;
+                if (!jsonString) {
+                    throw new Error("API response was empty or malformed.");
+                }
+                
+                const recipesArray = JSON.parse(jsonString);
+                if (!Array.isArray(recipesArray)) {
+                    throw new Error("API did not return an array of recipes.");
+                }
+
+                // Iterate and save each recipe to Firestore
+                for (const recipe of recipesArray) {
+                    await saveRecipeToFirestore(recipe);
+                }
+                showMessageModal("Success!", "All recipes were saved successfully!");
+            } catch (error) {
+                console.error("Error calling structured Gemini API:", error);
+                showMessageModal("Error", "Failed to process the recipe text. Please try again or use a clearer image.");
+            } finally {
+                setLoading(false);
+            }
+        }
+
+        // Function to call the Gemini Vision API to extract text from an image
+        async function callGeminiVisionAPI(base64Image) {
+            // Updated prompt to encourage finding multiple recipes
+            const prompt = "Transcribe all text from this image and identify all distinct recipes. Provide a clear, single block of text for all recipes found, separating them with a unique identifier if possible.";
+            let chatHistory = [{
+                role: "user",
+                parts: [
+                    { text: prompt },
+                    {
+                        inlineData: {
+                            mimeType: "image/jpeg",
+                            data: base64Image
+                        }
+                    }
+                ]
+            }];
+            const payload = { contents: chatHistory };
+            const apiKey = "";
+            const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-05-20:generateContent?key=${apiKey}`;
+
+            try {
+                const response = await fetch(apiUrl, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(payload)
+                });
+                
+                if (!response.ok) {
+                    const errorData = await response.json();
+                    throw new Error(`API error: ${errorData.error.message}`);
+                }
+                const result = await response.json();
+                
+                const transcribedText = result?.candidates?.[0]?.content?.parts?.[0]?.text;
+                if (!transcribedText) {
+                    throw new Error("Transcription failed. The image may not contain readable text.");
+                }
+                
+                // Pass the transcribed text to the structured API call
+                await callGeminiStructuredAPI(transcribedText);
+            } catch (error) {
+                console.error("Error calling Gemini Vision API:", error);
+                showMessageModal("Error", "Failed to read the image. Please make sure the text is clear and the image is not blurry.");
+                setLoading(false);
+            }
+        }
+        
+        // Function to handle image upload
+        async function handleUpload() {
+            const file = recipeImageInput.files[0];
+            if (!file) {
+                showMessageModal("Upload Error", "Please select an image file to upload.");
+                return;
+            }
+
+            setLoading(true);
+
+            // Read the image file as a data URL (Base64)
+            const reader = new FileReader();
+            reader.onloadend = async () => {
+                const base64Image = reader.result.split(',')[1];
+                await callGeminiVisionAPI(base64Image);
+            };
+            reader.onerror = (error) => {
+                console.error("FileReader error:", error);
+                showMessageModal("File Error", "Failed to read the image file.");
+                setLoading(false);
+            };
+            reader.readAsDataURL(file);
+        }
+
+        // Function to update the view count for a recipe
+        async function updateViews(recipeId) {
+            try {
+                const docRef = doc(db, `artifacts/${appId}/public/data/recipes`, recipeId);
+                await updateDoc(docRef, {
+                    views: allRecipes.find(r => r.id === recipeId).views + 1
+                });
+            } catch (e) {
+                console.error("Error updating views: ", e);
+            }
+        }
+
+        // Function to update a rating for a recipe
+        async function updateRating(recipeId, type) {
+            try {
+                const docRef = doc(db, `artifacts/${appId}/public/data/recipes`, recipeId);
+                const currentRecipe = allRecipes.find(r => r.id === recipeId);
+                if (type === 'loved') {
+                    await updateDoc(docRef, {
+                        loved: currentRecipe.loved + 1
+                    });
+                } else if (type === 'hated') {
+                    await updateDoc(docRef, {
+                        hated: currentRecipe.hated + 1
+                    });
+                }
+            } catch (e) {
+                console.error("Error updating rating: ", e);
+            }
+        }
+
+        // Function to add a comment to a recipe
+        async function addComment(recipeId, commentText) {
+            try {
+                const docRef = doc(db, `artifacts/${appId}/public/data/recipes`, recipeId);
+                const currentRecipe = allRecipes.find(r => r.id === recipeId);
+                if (!commentText.trim()) return; // Prevent empty comments
+
+                const newComment = {
+                    text: commentText,
+                    userId: userId,
+                    timestamp: new Date().toISOString()
+                };
+
+                const updatedComments = currentRecipe.comments ? [...currentRecipe.comments, newComment] : [newComment];
+                await updateDoc(docRef, {
+                    comments: updatedComments
+                });
+            } catch (e) {
+                console.error("Error adding comment: ", e);
+                showMessageModal("Error", "Failed to post comment. Please try again.");
+            }
+        }
+
+        // Function to render a single comment
+        function renderComment(comment) {
+            // Using substring for a shorter, display-friendly user ID
+            const displayUserId = comment.userId ? comment.userId.substring(0, 8) + '...' : 'Anonymous';
+            return `
+                <div class="p-2 border-b border-gray-200">
+                    <p class="text-xs text-gray-500 font-semibold">${displayUserId}</p>
+                    <p class="text-sm text-gray-700 mt-1">${comment.text}</p>
+                </div>
+            `;
+        }
+
+        // Function to render a single recipe card
+        function renderRecipeCard(recipe) {
+            const ingredientsList = recipe.ingredients.map(item => `<li class="text-sm text-gray-700 list-disc ml-4">${item}</li>`).join('');
+            const commentsHtml = recipe.comments ? recipe.comments.map(renderComment).join('') : '';
+
+            // Update views when the card is rendered
+            updateViews(recipe.id);
+
+            return `
+                <div class="bg-gray-50 rounded-lg p-6 shadow-md border border-gray-200 hover:shadow-lg transition-shadow duration-300">
+                    <div class="flex justify-between items-start mb-2">
+                        <h3 class="text-xl font-bold text-blue-600">${recipe.recipeName}</h3>
+                        <span class="bg-blue-100 text-blue-800 text-xs font-semibold px-2.5 py-0.5 rounded-full">${recipe.category}</span>
+                    </div>
+                    <div class="mb-4">
+                        <p class="font-semibold text-gray-800">Ingredients:</p>
+                        <ul class="mt-1 space-y-1">
+                            ${ingredientsList}
+                        </ul>
+                    </div>
+                    <div>
+                        <p class="font-semibold text-gray-800">Instructions:</p>
+                        <p class="mt-1 text-sm text-gray-700 whitespace-pre-wrap">${recipe.instructions}</p>
+                    </div>
+
+                    <!-- Rating and Comment section -->
+                    <div class="mt-4 pt-4 border-t border-gray-200">
+                        <div class="flex items-center space-x-4 mb-4">
+                            <span class="text-sm font-semibold text-gray-600">Views: ${recipe.views || 0}</span>
+                            <div class="flex items-center space-x-2">
+                                <button class="loved-button text-gray-500 hover:text-red-500 transition-colors duration-200" data-id="${recipe.id}">
+                                    <span class="text-2xl">❤️</span>
+                                </button>
+                                <span class="text-sm font-semibold text-gray-600 loved-count">${recipe.loved || 0}</span>
+                            </div>
+                            <div class="flex items-center space-x-2">
+                                <button class="hated-button text-gray-500 hover:text-blue-500 transition-colors duration-200" data-id="${recipe.id}">
+                                    <span class="text-2xl">💔</span>
+                                </button>
+                                <span class="text-sm font-semibold text-gray-600 hated-count">${recipe.hated || 0}</span>
+                            </div>
+                        </div>
+
+                        <!-- Comments -->
+                        <div class="mt-2">
+                            <p class="font-semibold text-gray-800">Comments:</p>
+                            <div class="comment-container mt-2 bg-gray-100 p-2 rounded-lg">
+                                ${commentsHtml}
+                            </div>
+                            <div class="mt-2 flex space-x-2">
+                                <input type="text" placeholder="Add a comment..." class="comment-input w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-1 focus:ring-blue-500" data-id="${recipe.id}">
+                                <button class="comment-button px-4 py-2 bg-blue-600 text-white text-sm rounded-lg hover:bg-blue-700 transition duration-200">Post</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            `;
+        }
+        
+        // Function to render the top 5 recipes
+        function displayTopRecipes() {
+            // Sort by views, loved, and hated
+            const sortedByViews = [...allRecipes].sort((a, b) => (b.views || 0) - (a.views || 0));
+            const sortedByLoved = [...allRecipes].sort((a, b) => (b.loved || 0) - (a.loved || 0));
+            const sortedByHated = [...allRecipes].sort((a, b) => (b.hated || 0) - (a.hated || 0));
+
+            // Get top 5 of each list
+            const top5Views = sortedByViews.slice(0, 5);
+            const top5Loved = sortedByLoved.slice(0, 5);
+            const top5Hated = sortedByHated.slice(0, 5);
+
+            // Render each list
+            const renderList = (list, element) => {
+                element.innerHTML = list.map(recipe => 
+                    `<li class="border-b border-gray-300 pb-2 mb-2 last:border-b-0 last:mb-0">
+                        <span class="font-medium text-gray-700">${recipe.recipeName}</span>
+                        <span class="text-sm text-gray-500"> (${recipe.views || 0} views, ${recipe.loved || 0} ❤️, ${recipe.hated || 0} 💔)</span>
+                    </li>`
+                ).join('');
+            };
+
+            renderList(top5Views, mostViewedList);
+            renderList(top5Loved, mostLovedList);
+            renderList(top5Hated, mostHatedList);
+        }
+
+        // Function to display recipes based on filters
+        function displayFilteredRecipes() {
+            const searchTerm = searchInput.value.toLowerCase();
+            const selectedCategory = categoryFilter.value;
+
+            // Filter the recipes
+            const filteredRecipes = allRecipes.filter(recipe => {
+                const matchesSearch = recipe.recipeName.toLowerCase().includes(searchTerm);
+                const matchesCategory = selectedCategory === 'all' || recipe.category.toLowerCase() === selectedCategory.toLowerCase();
+                return matchesSearch && matchesCategory;
+            });
+
+            // Render the filtered recipes
+            recipesList.innerHTML = filteredRecipes.map(recipe => renderRecipeCard(recipe)).join('');
+
+            // Add event listeners to the new buttons and inputs
+            recipesList.querySelectorAll('.loved-button').forEach(button => {
+                button.addEventListener('click', (e) => updateRating(e.currentTarget.dataset.id, 'loved'));
+            });
+            recipesList.querySelectorAll('.hated-button').forEach(button => {
+                button.addEventListener('click', (e) => updateRating(e.currentTarget.dataset.id, 'hated'));
+            });
+            recipesList.querySelectorAll('.comment-button').forEach(button => {
+                button.addEventListener('click', (e) => {
+                    const recipeId = e.currentTarget.parentNode.querySelector('.comment-input').dataset.id;
+                    const commentInput = e.currentTarget.parentNode.querySelector('.comment-input');
+                    addComment(recipeId, commentInput.value);
+                    commentInput.value = ''; // Clear the input after posting
+                });
+            });
+            
+            // Show message if no recipes are found
+            if (filteredRecipes.length === 0) {
+                noRecipesMessage.classList.remove('hidden');
+            } else {
+                noRecipesMessage.classList.add('hidden');
+            }
+        }
+        
+        // Listen for search input and filter changes
+        searchInput.addEventListener('input', displayFilteredRecipes);
+        categoryFilter.addEventListener('change', displayFilteredRecipes);
+
+        // Function to load recipes from Firestore in real-time
+        function loadRecipesFromFirestore() {
+            const recipeCollection = collection(db, `artifacts/${appId}/public/data/recipes`);
+            // Use onSnapshot to get real-time updates
+            onSnapshot(recipeCollection, (querySnapshot) => {
+                allRecipes = []; // Clear the array before repopulating
+                querySnapshot.forEach((doc) => {
+                    allRecipes.push({ id: doc.id, ...doc.data() });
+                });
+
+                // Sort recipes by timestamp in descending order
+                allRecipes.sort((a, b) => b.timestamp - a.timestamp);
+                
+                // Display the recipes and top lists
+                displayTopRecipes();
+                displayFilteredRecipes();
+            }, (error) => {
+                console.error("Error getting real-time updates:", error);
+                showMessageModal("Error", "Failed to load recipes. Please refresh the page.");
+            });
+        }
+        
+        // Initialize Firebase and set up authentication
+        async function initializeApp() {
+            try {
+                const app = initializeApp(firebaseConfig);
+                auth = getAuth(app);
+                db = getFirestore(app);
+
+                // Wait for auth state to be ready
+                onAuthStateChanged(auth, async (user) => {
+                    if (user) {
+                        userId = user.uid;
+                        isAuthReady = true;
+                        console.log(`Authenticated with userId: ${userId}`);
+                        userIdDisplay.textContent = `Your User ID: ${userId}`;
+                        userIdDisplay.classList.remove('hidden');
+                        // Start listening for recipes once auth is ready
+                        loadRecipesFromFirestore();
+                    } else {
+                        // Sign in anonymously if no user is authenticated
+                        if (initialAuthToken) {
+                            try {
+                                await signInWithCustomToken(auth, initialAuthToken);
+                            } catch (error) {
+                                console.error("Error signing in with custom token:", error);
+                                await signInAnonymously(auth);
+                            }
+                        } else {
+                            await signInAnonymously(auth);
+                        }
+                    }
+                });
+
+                // Set up event listener for the upload button
+                uploadButton.addEventListener('click', handleUpload);
+
+            } catch (error) {
+                console.error("Error during app initialization:", error);
+                showMessageModal("Initialization Error", "Failed to initialize the application. Please check the console for details.");
+            }
+        }
+
+        // Start the application when the window loads
+        window.onload = initializeApp;
+    </script>
+</body>
+</html>
